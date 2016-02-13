@@ -3,8 +3,9 @@ package com.antonfagerberg.instagram
 import net.liftweb.json.DefaultFormats
 import com.antonfagerberg.instagram.responses._
 
-class Instagram(accessTokenOrClientId: Either[String, String], timeOut: Int = 10000) {
-  implicit val formats = DefaultFormats
+class Instagram(accessTokenOrClientId: Either[String, String], timeOut: Int = Instagram.timeOut) {
+  
+  implicit val formats = Instagram.formats
 
   val authentication = accessTokenOrClientId match {
     case Left(accessToken) => s"access_token=$accessToken"
@@ -326,7 +327,14 @@ class Instagram(accessTokenOrClientId: Either[String, String], timeOut: Int = 10
   def comment(mediaId: String, comment: String): Response[NoData] = {
     Request.postJson(s"https://api.instagram.com/v1/media/$mediaId/comments?$authentication", json => None, List("text" -> comment), timeOut)
   }
+  
+}
 
+object Instagram {
+  
+  val timeOut = 1000;
+  implicit val formats = DefaultFormats
+  
   /** Generic query for a given URL.
     *
     * @param url  Instagram API URL.
@@ -337,4 +345,5 @@ class Instagram(accessTokenOrClientId: Either[String, String], timeOut: Int = 10
   def request[T](url: String)(implicit m: Manifest[T]): Response[T] = {
     Request.getJson(url, json => Some(json.extract[T]), timeOut)
   }
+
 }
